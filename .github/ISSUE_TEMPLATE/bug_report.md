@@ -18,7 +18,7 @@ What you expected to happen.
 **Actual behaviour**
 What actually happened. Paste relevant log lines:
 ```
-docker logs newsblog-ai --tail 30
+docker logs ai-blog-generator --tail 30
 ```
 
 **Environment**

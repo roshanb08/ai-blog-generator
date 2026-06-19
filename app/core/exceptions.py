@@ -2,7 +2,7 @@ from typing import Any
 
 
 class NewsBlogError(Exception):
-    """Base exception for all NewsBlog AI errors."""
+    """Base exception for all AI Blog Generator errors."""
 
     def __init__(self, message: str, detail: Any = None) -> None:
         super().__init__(message)

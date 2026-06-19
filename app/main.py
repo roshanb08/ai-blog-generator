@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
 
     configure_logging(settings.log_level)
-    logger.info("NewsBlog AI starting up", environment=settings.environment)
+    logger.info("AI Blog Generator starting up", environment=settings.environment)
 
     news_client = NewsAPIClient(settings)
     llm_client = _build_llm_client(settings)
@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     yield
 
-    logger.info("NewsBlog AI shutting down")
+    logger.info("AI Blog Generator shutting down")
     await news_client.close()
     await llm_client.close()
     await dedup_service.close()
@@ -65,7 +65,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title="NewsBlog AI",
+        title="AI Blog Generator",
         description=(
             "Automatically generates unique, SEO-optimised blog articles "
             "from the latest news using NewsAPI and an OpenWebUI-compatible LLM."

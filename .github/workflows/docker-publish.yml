@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 env:
-  IMAGE_NAME: newsblog-ai
+  IMAGE_NAME: ai-blog-generator
 
 jobs:
   build-and-push:
@@ -42,7 +42,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
           labels: |
-            org.opencontainers.image.title=NewsBlog AI
+            org.opencontainers.image.title=AI Blog Generator
             org.opencontainers.image.description=AI-powered news blog generator API
             org.opencontainers.image.url=https://github.com/${{ github.repository }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}

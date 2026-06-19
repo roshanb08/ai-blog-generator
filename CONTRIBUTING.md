@@ -1,4 +1,4 @@
-# Contributing to NewsBlog AI
+# Contributing to AI Blog Generator
 
 Thank you for taking the time to contribute. All types of contributions are welcome — bug reports, feature requests, documentation improvements, and code.
 
@@ -9,8 +9,8 @@ Thank you for taking the time to contribute. All types of contributions are welc
 ### 1. Fork and clone
 
 ```bash
-git clone https://github.com/your-username/newsblog-ai.git
-cd newsblog-ai
+git clone https://github.com/your-username/ai-blog-generator.git
+cd ai-blog-generator
 ```
 
 ### 2. Set up a local dev environment
@@ -52,7 +52,7 @@ git checkout -b fix/short-description
 
 ## Reporting a bug
 
-Use the [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) issue template and include the output of `docker logs newsblog-ai --tail 30`.
+Use the [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) issue template and include the output of `docker logs ai-blog-generator --tail 30`.
 
 ---
 

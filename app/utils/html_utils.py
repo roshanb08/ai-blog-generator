@@ -115,10 +115,10 @@ def build_full_document(
         "description": meta.get("meta_description", ""),
         "keywords": meta.get("keywords", ""),
         "datePublished": published,
-        "author": {"@type": "Organization", "name": "NewsBlog AI"},
+        "author": {"@type": "Organization", "name": "AI Blog Generator"},
         "publisher": {
             "@type": "Organization",
-            "name": "NewsBlog AI",
+            "name": "AI Blog Generator",
             "logo": {"@type": "ImageObject", "url": ""},
         },
         **({"image": [og_image]} if og_image else {}),
@@ -141,7 +141,7 @@ def build_full_document(
   <meta name="description" content="{meta_description}">
   <meta name="keywords" content="{keywords}">
   <meta name="robots" content="index, follow">
-  <meta name="author" content="NewsBlog AI">
+  <meta name="author" content="AI Blog Generator">
 
   <!-- Open Graph -->
   <meta property="og:type" content="article">

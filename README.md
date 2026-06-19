@@ -1,8 +1,8 @@
-# NewsBlog AI
+# AI Blog Generator
 
 > **One API call → a fully SEO-optimised blog post from today's news.**
 
-NewsBlog AI is a production-ready, Dockerized REST API that fetches breaking news, deduplicates stories, and uses any OpenAI-compatible LLM to generate a cohesive, publication-ready HTML5 blog article — complete with Open Graph tags, Twitter Card, and Schema.org JSON-LD.
+AI Blog Generator is a production-ready, Dockerized REST API that fetches breaking news, deduplicates stories, and uses any OpenAI-compatible LLM to generate a cohesive, publication-ready HTML5 blog article — complete with Open Graph tags, Twitter Card, and Schema.org JSON-LD.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
@@ -29,8 +29,8 @@ NewsBlog AI is a production-ready, Dockerized REST API that fetches breaking new
 ### 1. Clone
 
 ```bash
-git clone https://github.com/your-username/newsblog-ai.git
-cd newsblog-ai
+git clone https://github.com/your-username/ai-blog-generator.git
+cd ai-blog-generator
 cp .env.example .env
 ```
 
@@ -60,14 +60,14 @@ curl http://localhost:8000/health
 ## Docker Hub
 
 ```bash
-docker pull your-username/newsblog-ai:latest
+docker pull your-username/ai-blog-generator:latest
 
 docker run -d \
-  --name newsblog-ai \
+  --name ai-blog-generator \
   -p 8000:8000 \
-  -v newsblog_data:/data \
+  -v ai_blog_data:/data \
   --env-file .env \
-  your-username/newsblog-ai:latest
+  your-username/ai-blog-generator:latest
 ```
 
 ---
@@ -216,7 +216,7 @@ LLM_PROVIDER=openrouter
 OPENROUTER_API_KEY=sk-or-...
 OPENROUTER_MODEL=google/gemma-4-31b-it:free
 OPENROUTER_SITE_URL=https://your-site.com   # optional
-OPENROUTER_SITE_NAME=NewsBlog AI            # optional
+OPENROUTER_SITE_NAME=AI Blog Generator            # optional
 ```
 
 Get a free key at [openrouter.ai/keys](https://openrouter.ai/keys). Tested free models:
@@ -254,7 +254,7 @@ OPENWEBUI_MODEL=gpt-4o
 | `OPENROUTER_API_KEY`   | —                 | API key |
 | `OPENROUTER_MODEL`     | `openai/gpt-4o`   | Model ID |
 | `OPENROUTER_SITE_URL`  | _(empty)_         | Sent as `HTTP-Referer` |
-| `OPENROUTER_SITE_NAME` | `NewsBlog AI`     | Sent as `X-Title` |
+| `OPENROUTER_SITE_NAME` | `AI Blog Generator`     | Sent as `X-Title` |
 
 ### OpenWebUI
 
@@ -374,7 +374,7 @@ Releases are tagged by pushing a git tag:
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
-# Publishes: your-username/newsblog-ai:1.0.0, :1.0, :latest
+# Publishes: your-username/ai-blog-generator:1.0.0, :1.0, :latest
 ```
 
 ---

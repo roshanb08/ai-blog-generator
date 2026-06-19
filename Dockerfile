@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-LABEL org.opencontainers.image.title="NewsBlog AI"
+LABEL org.opencontainers.image.title="AI Blog Generator"
 LABEL org.opencontainers.image.description="AI-powered news blog generator"
 LABEL org.opencontainers.image.licenses="MIT"
 

@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "openai/gpt-4o"
     openrouter_site_url: str = ""   # sent as HTTP-Referer; helps OpenRouter attribution
-    openrouter_site_name: str = "NewsBlog AI"  # sent as X-Title
+    openrouter_site_name: str = "AI Blog Generator"  # sent as X-Title
 
     # ── Deduplication ─────────────────────────────────────────────────────────
     dedup_db_path: str = "/data/dedup.db"
