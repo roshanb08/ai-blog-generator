@@ -7,7 +7,8 @@ AI Blog Generator is a production-ready, Dockerized REST API that fetches breaki
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
-[![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg?logo=docker&logoColor=white)](https://hub.docker.com)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg?logo=docker&logoColor=white)](https://ghcr.io/roshanb08/ai-blog-generator)
+[![GHCR](https://img.shields.io/badge/GHCR-ghcr.io%2Froshanb08-0D1117.svg?logo=github)](https://ghcr.io/roshanb08/ai-blog-generator)
 [![OpenRouter](https://img.shields.io/badge/OpenRouter-compatible-6D28D9.svg)](https://openrouter.ai)
 
 ---
@@ -26,48 +27,104 @@ AI Blog Generator is a production-ready, Dockerized REST API that fetches breaki
 
 ## Quick start
 
-### 1. Clone
+### 1. Configure your environment
 
 ```bash
-git clone https://github.com/your-username/ai-blog-generator.git
-cd ai-blog-generator
-cp .env.example .env
+curl -O https://raw.githubusercontent.com/roshanb08/ai-blog-generator/main/.env.example
+mv .env.example .env
 ```
 
-### 2. Configure `.env`
+Open `.env` and set at minimum:
 
 ```env
-NEWS_API_KEY=your_newsapi_key          # https://newsapi.org/register
-
+NEWS_API_KEY=your_newsapi_key_here       # https://newsapi.org/register
 LLM_PROVIDER=openrouter
-OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_API_KEY=sk-or-...             # https://openrouter.ai/keys
 OPENROUTER_MODEL=google/gemma-4-31b-it:free
 ```
 
-### 3. Run
+### 2. Run
+
+**Option A — Docker run**
+
+```bash
+docker run -d \
+  --name ai-blog-generator \
+  --env-file .env \
+  -p 8000:8000 \
+  -v ai_blog_data:/data \
+  --restart unless-stopped \
+  ghcr.io/roshanb08/ai-blog-generator:1.0.0
+```
+
+**Option B — Docker Compose**
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  api:
+    image: ghcr.io/roshanb08/ai-blog-generator:1.0.0
+    container_name: ai-blog-generator
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ai_blog_data:/data
+    restart: unless-stopped
+
+volumes:
+  ai_blog_data:
+```
 
 ```bash
 docker compose up -d
 ```
+
+> The `ai_blog_data` volume persists the deduplication database across restarts.
+
+### 3. Verify
 
 ```bash
 curl http://localhost:8000/health
 # {"status":"ok"}
 ```
 
----
-
-## Docker Hub
+### 4. Generate your first blog post
 
 ```bash
-docker pull your-username/ai-blog-generator:latest
+curl -s -X POST http://localhost:8000/generate-blog \
+  -H "Content-Type: application/json" \
+  -d '{"category": "technology", "country": "us", "limit": 5}' \
+  | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+if 'html' in data:
+    open('blog.html', 'w').write(data['html'])
+    print('Saved → blog.html')
+else:
+    print('Error:', data.get('detail', data))
+"
+```
 
-docker run -d \
-  --name ai-blog-generator \
-  -p 8000:8000 \
-  -v ai_blog_data:/data \
-  --env-file .env \
-  your-username/ai-blog-generator:latest
+### Useful commands
+
+```bash
+docker logs -f ai-blog-generator          # live logs
+docker compose down                        # stop
+docker compose down -v                     # stop + wipe dedup database
+```
+
+---
+
+## Build from source
+
+```bash
+git clone https://github.com/roshanb08/ai-blog-generator.git
+cd ai-blog-generator
+cp .env.example .env   # fill in your keys
+docker compose up -d --build
 ```
 
 ---
@@ -374,7 +431,7 @@ Releases are tagged by pushing a git tag:
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
-# Publishes: your-username/ai-blog-generator:1.0.0, :1.0, :latest
+# Publishes: ghcr.io/roshanb08/ai-blog-generator:1.0.0, :1.0, :latest
 ```
 
 ---
