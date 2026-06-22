@@ -16,6 +16,7 @@ class NewsService:
         category: str = "general",
         country: str = "us",
         page_size: int | None = None,
+        q: str | None = None,
     ) -> list[NewsArticle]:
         fetch_size = page_size or self._settings.max_news_fetch
 
@@ -24,12 +25,14 @@ class NewsService:
             category=category,
             country=country,
             fetch_size=fetch_size,
+            q=q,
         )
 
         response = await self._client.fetch_top_headlines(
             category=category,
             country=country,
             page_size=fetch_size,
+            q=q,
         )
 
         articles = self._normalise(response.articles)

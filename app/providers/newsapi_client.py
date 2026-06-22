@@ -44,6 +44,7 @@ class NewsAPIClient:
         category: str = "general",
         country: str = "us",
         page_size: int = 20,
+        q: str | None = None,
     ) -> NewsAPIResponse:
         safe_category = category if category in VALID_CATEGORIES else "general"
 
@@ -53,11 +54,15 @@ class NewsAPIClient:
             "pageSize": min(page_size, 100),
         }
 
+        if q:
+            params["q"] = q
+
         logger.info(
             "Fetching top headlines",
             category=safe_category,
             country=country,
             page_size=page_size,
+            q=q,
         )
 
         try:

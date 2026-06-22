@@ -9,6 +9,10 @@ class BlogRequest(BaseModel):
         description="News category: business, entertainment, general, health, science, sports, technology",
     )
     country: str = Field(default="us", description="2-letter ISO country code")
+    q: Optional[str] = Field(
+        default=None,
+        description="Keyword or phrase to filter headlines (e.g. 'AI', 'climate change')",
+    )
     limit: int = Field(default=5, ge=1, le=10, description="Number of news stories to include")
     full_html: bool = Field(
         default=True,
@@ -38,6 +42,7 @@ class BlogResponse(BaseModel):
     articles_used: int
     category: str
     country: str
+    q: Optional[str] = None
 
 
 class HealthResponse(BaseModel):

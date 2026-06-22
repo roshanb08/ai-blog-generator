@@ -48,6 +48,7 @@ async def generate_blog(
         category=body.category,
         country=body.country,
         limit=body.limit,
+        q=body.q,
         timeout=timeout,
     )
 
@@ -58,6 +59,7 @@ async def generate_blog(
                 country=body.country,
                 limit=body.limit,
                 full_html=body.full_html,
+                q=body.q,
             ),
             timeout=timeout,
         )

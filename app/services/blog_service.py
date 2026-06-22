@@ -51,8 +51,9 @@ class BlogService:
         country: str = "us",
         limit: int = 5,
         full_html: bool = True,
+        q: str | None = None,
     ) -> BlogResponse:
-        cache_key = f"{category}:{country}:{limit}:{full_html}"
+        cache_key = f"{category}:{country}:{limit}:{full_html}:{q or ''}"
 
         if self._settings.cache_enabled:
             cached = self._response_cache.get(cache_key)
@@ -67,12 +68,14 @@ class BlogService:
             country=country,
             limit=limit,
             full_html=full_html,
+            q=q,
         )
 
         articles = await self._news.fetch_articles(
             category=category,
             country=country,
             page_size=self._settings.max_news_fetch,
+            q=q,
         )
 
         unique_articles = await self._dedup.filter_new(articles, category=category)
@@ -117,6 +120,7 @@ class BlogService:
             articles_used=len(selected),
             category=category,
             country=country,
+            q=q,
         )
 
         if self._settings.cache_enabled:

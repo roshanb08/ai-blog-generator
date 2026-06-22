@@ -137,6 +137,7 @@ docker compose up -d --build
 |-------------|---------|-------------|-------------|
 | `category`  | string  | `"general"` | `business` `entertainment` `general` `health` `science` `sports` `technology` |
 | `country`   | string  | `"us"`      | ISO 3166-1 alpha-2 country code |
+| `q`         | string  | `null`      | Keyword or phrase to filter headlines (e.g. `"AI"`, `"climate change"`) |
 | `limit`     | int     | `5`         | Stories to include (1–10) |
 | `full_html` | boolean | `true`      | `true` → complete `<!DOCTYPE html>` with SEO head · `false` → bare `<article>` block, style stripped |
 
