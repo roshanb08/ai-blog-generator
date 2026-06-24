@@ -13,6 +13,10 @@ class BlogRequest(BaseModel):
         default=None,
         description="Keyword or phrase to filter headlines (e.g. 'AI', 'climate change')",
     )
+    github: bool = Field(
+        default=False,
+        description="True → source content from trending GitHub repos instead of NewsAPI",
+    )
     limit: int = Field(default=5, ge=1, le=10, description="Number of news stories to include")
     full_html: bool = Field(
         default=True,

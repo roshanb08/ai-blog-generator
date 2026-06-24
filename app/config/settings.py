@@ -52,6 +52,12 @@ class Settings(BaseSettings):
     openrouter_site_url: str = ""   # sent as HTTP-Referer; helps OpenRouter attribution
     openrouter_site_name: str = "AI Blog Generator"  # sent as X-Title
 
+    # ── GitHub ───────────────────────────────────────────────────────────────
+    github_token: Optional[str] = Field(
+        default=None,
+        description="GitHub PAT for higher Search API rate limits (optional — works without it)",
+    )
+
     # ── Deduplication ─────────────────────────────────────────────────────────
     dedup_db_path: str = "/data/dedup.db"
     dedup_title_similarity_threshold: float = 0.65

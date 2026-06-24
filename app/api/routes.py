@@ -3,6 +3,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.core.exceptions import (
+    GitHubAPIError,
     InsufficientArticlesError,
     LLMError,
     NewsAPIError,
@@ -49,6 +50,7 @@ async def generate_blog(
         country=body.country,
         limit=body.limit,
         q=body.q,
+        github=body.github,
         timeout=timeout,
     )
 
@@ -60,6 +62,7 @@ async def generate_blog(
                 limit=body.limit,
                 full_html=body.full_html,
                 q=body.q,
+                github=body.github,
             ),
             timeout=timeout,
         )
@@ -87,6 +90,13 @@ async def generate_blog(
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Failed to fetch news: {exc.message}",
+        )
+
+    except GitHubAPIError as exc:
+        logger.error("GitHub API error", message=exc.message, detail=exc.detail)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Failed to fetch GitHub repos: {exc.message}",
         )
 
     except InsufficientArticlesError as exc:
