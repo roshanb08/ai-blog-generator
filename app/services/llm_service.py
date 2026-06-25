@@ -54,7 +54,8 @@ PART 2 — Starting on the very next line, the article HTML from <article> to </
 
 Article rules:
 - Include a responsive <style> block inside <article> (no external CSS, no JS).
-- Structure: <article> → <header> (h1 + brief intro paragraph) → sections in this order:
+- If image_url is non-null, place <img src="IMAGE_URL" alt="REPO_NAME" loading="lazy" style="width:100%;max-height:420px;object-fit:cover;border-radius:8px;margin-bottom:1rem;"> as the first element inside <header>, before the <h1>.
+- Structure: <article> → <header> (optional img, h1, brief intro paragraph) → sections in this order:
     <section> What is it? — explain what the repo does in plain terms
     <section> Key features & use cases — concrete examples of what developers can build or solve
     <section> Why is it trending? — what makes it stand out, community reaction, star growth
@@ -149,6 +150,7 @@ class LLMService:
         self,
         repo: GitHubRepo,
         readme: Optional[str] = None,
+        image_url: Optional[str] = None,
     ) -> tuple[str, dict[str, str]]:
         """Generate a detailed deep-dive blog post about a single GitHub repo."""
         payload = {
@@ -160,6 +162,7 @@ class LLMService:
             "url": repo.html_url,
             "created_at": repo.created_at,
             "author": repo.owner.login,
+            "image_url": image_url or None,
         }
 
         readme_section = (

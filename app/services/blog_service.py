@@ -192,7 +192,14 @@ class BlogService:
         readme = await self._github.fetch_readme(repo.full_name)
         logger.info("README fetched", repo=repo.full_name, chars=len(readme) if readme else 0)
 
-        article_html, meta = await self._llm.generate_blog_from_repo(repo, readme=readme)
+        image_url = (
+            self._github.extract_image_from_readme(readme, full_name=repo.full_name)
+            if readme else None
+        ) or repo.owner.avatar_url
+
+        logger.info("Image resolved", repo=repo.full_name, image_url=image_url)
+
+        article_html, meta = await self._llm.generate_blog_from_repo(repo, readme=readme, image_url=image_url)
         await self._dedup.mark_repo_used(repo, category="github")
 
         return article_html, meta, [repo.html_url], 1

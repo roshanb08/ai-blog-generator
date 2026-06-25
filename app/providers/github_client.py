@@ -1,4 +1,5 @@
 import base64
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -90,6 +91,38 @@ class GitHubClient:
         )
 
         return parsed.items
+
+    @staticmethod
+    def extract_image_from_readme(readme: str, full_name: str = "") -> Optional[str]:
+        """Return the first non-badge image URL found in a README.
+
+        Handles both absolute URLs and relative paths (converted to raw.githubusercontent.com).
+        """
+        _BADGE_PATTERNS = (
+            "shields.io", "badge", "travis-ci", "circleci", "codecov",
+            "snyk.io", "npmjs", "pypi", "github/workflow", "actions/workflows",
+            "hits.dwyl", "forthebadge", "img.shields",
+        )
+        # Match markdown ![alt](url) and HTML <img src="url"> — absolute and relative
+        candidates = re.findall(
+            r'!\[.*?\]\(([^\s)]+)\)|<img[^>]+src=["\']?([^\s"\']+)',
+            readme,
+            re.IGNORECASE,
+        )
+        for groups in candidates:
+            url = next((g for g in groups if g), None)
+            if not url:
+                continue
+            # Convert relative paths to absolute raw GitHub URLs
+            if not url.startswith("http"):
+                if not full_name:
+                    continue
+                cleaned = url.lstrip("./")
+                url = f"https://raw.githubusercontent.com/{full_name}/HEAD/{cleaned}"
+            if any(p in url.lower() for p in _BADGE_PATTERNS):
+                continue
+            return url
+        return None
 
     async def fetch_readme(self, full_name: str, max_chars: int = 3000) -> Optional[str]:
         """Fetch and decode the README for a repo. Returns None if unavailable."""

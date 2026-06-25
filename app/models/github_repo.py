@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class GitHubOwner(BaseModel):
     login: str
+    avatar_url: str
 
 
 class GitHubRepo(BaseModel):
