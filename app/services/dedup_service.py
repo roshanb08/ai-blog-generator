@@ -21,6 +21,7 @@ import aiosqlite
 from app.config.settings import Settings
 from app.core.exceptions import DeduplicationError
 from app.core.logging import get_logger
+from app.models.github_repo import GitHubRepo
 from app.models.news import NewsArticle
 
 logger = get_logger(__name__)
@@ -137,6 +138,67 @@ class DeduplicationService:
         )
         await self._db.commit()
         logger.info("Marked articles as used", count=len(rows), category=category)
+
+    async def filter_new_repos(
+        self, repos: list[GitHubRepo], category: str = "github"
+    ) -> list[GitHubRepo]:
+        if not self._db:
+            raise DeduplicationError("DeduplicationService not initialised — call init() first")
+
+        new_repos: list[GitHubRepo] = []
+        for repo in repos:
+            if await self._is_repo_duplicate(repo):
+                logger.debug("Duplicate repo skipped", repo=repo.full_name)
+                continue
+            new_repos.append(repo)
+
+        logger.info(
+            "GitHub repo deduplication complete",
+            total_in=len(repos),
+            total_out=len(new_repos),
+        )
+        return new_repos
+
+    async def mark_repo_used(self, repo: GitHubRepo, category: str = "github") -> None:
+        if not self._db:
+            raise DeduplicationError("DeduplicationService not initialised")
+
+        now = datetime.now(timezone.utc).isoformat()
+        await self._db.execute(
+            """INSERT OR IGNORE INTO seen_articles
+               (url_hash, title_hash, title_tokens, published_at, category, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                _sha256(repo.html_url),
+                _sha256(_normalise_title(repo.full_name)),
+                " ".join(sorted(_tokenise(repo.full_name))),
+                repo.created_at,
+                category,
+                now,
+            ),
+        )
+        await self._db.commit()
+        logger.info("Marked GitHub repo as used", repo=repo.full_name)
+
+    async def _is_repo_duplicate(self, repo: GitHubRepo) -> bool:
+        assert self._db is not None
+
+        url_hash = _sha256(repo.html_url)
+        cursor = await self._db.execute(
+            "SELECT 1 FROM seen_articles WHERE url_hash = ? LIMIT 1", (url_hash,)
+        )
+        if await cursor.fetchone():
+            return True
+
+        norm_title = _normalise_title(repo.full_name)
+        title_hash = _sha256(norm_title)
+        cursor = await self._db.execute(
+            "SELECT 1 FROM seen_articles WHERE title_hash = ? LIMIT 1", (title_hash,)
+        )
+        if await cursor.fetchone():
+            return True
+
+        return False
 
     async def _is_duplicate(self, article: NewsArticle) -> bool:
         assert self._db is not None

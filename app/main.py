@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.api.routes import router
 from app.config.settings import Settings, get_settings
 from app.core.logging import configure_logging, get_logger
+from app.providers.github_client import GitHubClient
 from app.providers.newsapi_client import NewsAPIClient
 from app.providers.openrouter_client import OpenRouterClient
 from app.providers.openwebui_client import OpenWebUIClient
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     news_client = NewsAPIClient(settings)
     llm_client = _build_llm_client(settings)
+    github_client = GitHubClient(settings)
 
     dedup_service = DeduplicationService(settings)
     await dedup_service.init()
@@ -48,15 +50,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         dedup_service=dedup_service,
         llm_service=llm_service,
         settings=settings,
+        github_client=github_client,
     )
 
-    logger.info("All services initialised — ready to serve")
+    logger.info(
+        "All services initialised — ready to serve",
+        github_token_set=bool(settings.github_token),
+    )
 
     yield
 
     logger.info("AI Blog Generator shutting down")
     await news_client.close()
     await llm_client.close()
+    await github_client.close()
     await dedup_service.close()
     logger.info("Clean shutdown complete")
 

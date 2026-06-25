@@ -15,7 +15,8 @@ AI Blog Generator is a production-ready, Dockerized REST API that fetches breaki
 
 ## Features
 
-- **News fetching** — Pulls top headlines from [NewsAPI.org](https://newsapi.org) by category and country
+- **Dual content sources** — Pull from [NewsAPI.org](https://newsapi.org) headlines **or** trending GitHub repositories (set `github: true`)
+- **Keyword filter** — Optional `q` parameter narrows NewsAPI headlines or GitHub repo search by keyword or phrase
 - **3-layer deduplication** — URL hash → title hash → Jaccard similarity; SQLite-backed with configurable TTL
 - **Dual LLM provider support** — Works with **OpenRouter** (200+ models) or any **OpenWebUI** instance out of the box
 - **SEO-first output** — `<title>`, `<meta description>`, Open Graph, Twitter Card, Schema.org `NewsArticle` JSON-LD
@@ -135,10 +136,11 @@ docker compose up -d --build
 
 | Field       | Type    | Default     | Description |
 |-------------|---------|-------------|-------------|
-| `category`  | string  | `"general"` | `business` `entertainment` `general` `health` `science` `sports` `technology` |
-| `country`   | string  | `"us"`      | ISO 3166-1 alpha-2 country code |
-| `q`         | string  | `null`      | Keyword or phrase to filter headlines (e.g. `"AI"`, `"climate change"`) |
-| `limit`     | int     | `5`         | Stories to include (1–10) |
+| `github`    | boolean | `false`     | `true` → source content from trending GitHub repos · `false` → use NewsAPI (default) |
+| `category`  | string  | `"general"` | NewsAPI category: `business` `entertainment` `general` `health` `science` `sports` `technology` — ignored when `github: true` |
+| `country`   | string  | `"us"`      | ISO 3166-1 alpha-2 country code — ignored when `github: true` |
+| `q`         | string  | `null`      | Keyword filter — narrows NewsAPI headlines or GitHub repo search (e.g. `"AI"`, `"language:python"`) |
+| `limit`     | int     | `5`         | Stories / repos to include (1–10) |
 | `full_html` | boolean | `true`      | `true` → complete `<!DOCTYPE html>` with SEO head · `false` → bare `<article>` block, style stripped |
 
 **Response fields**
@@ -153,10 +155,11 @@ docker compose up -d --build
 | `og_title`         | Open Graph title |
 | `og_description`   | Open Graph description |
 | `og_image`         | First article image URL |
-| `sources`          | Source URLs used to generate the post |
-| `articles_used`    | Number of stories included |
+| `sources`          | Source URLs used (NewsAPI article URLs or GitHub repo URLs) |
+| `articles_used`    | Number of stories / repos included |
 | `category`         | Echoes the requested category |
 | `country`          | Echoes the requested country |
+| `q`                | Echoes the keyword filter if provided |
 
 ---
 
@@ -247,6 +250,66 @@ else:
 
 ---
 
+#### Example C — trending GitHub repositories (`github: true`)
+
+Generates a developer-focused blog from the most popular new GitHub repos this week.
+
+```bash
+curl -s -X POST http://localhost:8000/generate-blog \
+  -H "Content-Type: application/json" \
+  -d '{"github": true, "limit": 5}' \
+  | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+if 'html' in data:
+    open('github-blog.html', 'w').write(data['html'])
+    print('Saved → github-blog.html')
+else:
+    print('Error:', data.get('detail', data)); sys.exit(1)
+"
+```
+
+Filter by language or topic using `q`:
+
+```bash
+# Trending Python repos
+curl -X POST http://localhost:8000/generate-blog \
+  -H "Content-Type: application/json" \
+  -d '{"github": true, "q": "language:python", "limit": 5}'
+
+# Trending AI/ML repos
+curl -X POST http://localhost:8000/generate-blog \
+  -H "Content-Type: application/json" \
+  -d '{"github": true, "q": "machine learning", "limit": 5}'
+```
+
+<details>
+<summary>Example response</summary>
+
+```json
+{
+  "title": "GitHub's Hottest New Repos This Week: AI Tools Taking Over",
+  "html": "<!DOCTYPE html>...",
+  "full_html": true,
+  "meta_description": "From autonomous agents to blazing-fast vector databases, here are the GitHub projects developers are starring right now.",
+  "keywords": "open source, GitHub trending, AI tools, developer tools, LLM",
+  "og_title": "GitHub's Hottest New Repos This Week",
+  "og_description": "The open-source projects gaining the most stars this week — and why they matter.",
+  "og_image": null,
+  "sources": [
+    "https://github.com/owner/repo-one",
+    "https://github.com/owner/repo-two"
+  ],
+  "articles_used": 5,
+  "category": "general",
+  "country": "us",
+  "q": null
+}
+```
+</details>
+
+---
+
 ### `GET /health`
 
 ```bash
@@ -330,6 +393,12 @@ OPENWEBUI_MODEL=gpt-4o
 | `LLM_TEMPERATURE` | `0.7`   | Sampling temperature (0 = deterministic) |
 | `LLM_MAX_TOKENS`  | `2048`  | Max response tokens — free models use ~600–900 |
 | `REQUEST_TIMEOUT` | `120`   | Total wall-clock budget for `/generate-blog` |
+
+### GitHub
+
+| Variable       | Default | Description |
+|----------------|---------|-------------|
+| `GITHUB_TOKEN` | _(none)_ | Optional PAT — raises rate limit from 10 to 30 req/min. No scopes needed. [Create one](https://github.com/settings/tokens) |
 
 ### Deduplication
 

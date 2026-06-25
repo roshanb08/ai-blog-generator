@@ -32,3 +32,7 @@ class InsufficientArticlesError(NewsBlogError):
 
 class DeduplicationError(NewsBlogError):
     """Raised on database or deduplication failures."""
+
+
+class GitHubAPIError(NewsBlogError):
+    """Raised when the GitHub API returns an error or times out."""
