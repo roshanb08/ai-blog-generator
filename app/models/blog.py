@@ -17,7 +17,7 @@ class BlogRequest(BaseModel):
         default=False,
         description="True → source content from trending GitHub repos instead of NewsAPI",
     )
-    limit: int = Field(default=5, ge=1, le=10, description="Number of news stories to include")
+    limit: int = Field(default=5, ge=1, le=10, description="Number of news stories to include. 1 → a focused post about a single story; 2+ → a roundup")
     full_html: bool = Field(
         default=True,
         description=(

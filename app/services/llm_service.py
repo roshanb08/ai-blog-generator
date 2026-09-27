@@ -42,6 +42,43 @@ Remember: output the compact JSON metadata on line 1, then the <article> HTML im
 """
 
 
+_SINGLE_SYSTEM_PROMPT = """\
+You are an expert technology journalist. Write a focused blog post about ONE specific news story.
+
+OUTPUT FORMAT — two parts, nothing else, no markdown, no code fences:
+
+PART 1 — A single compact JSON line (no line breaks inside it) with exactly these keys:
+{"title":"Specific headline about THIS story, 50-70 chars","meta_description":"Meta description 150-160 chars","keywords":"5-7 comma-separated keywords","og_title":"Open Graph title","og_description":"OG description max 200 chars"}
+
+Title rules:
+- Name the concrete subject of the story (product, company, event) — e.g. "iPhone 18 Pro Max Battery Shipping Rules Spark Buyer Concerns".
+- NEVER start with "Today's", and never use roundup wording such as "top news", "news roundup", "this week in", "& more" or "and more".
+
+PART 2 — Starting on the very next line, the article HTML from <article> to </article>.
+
+Article rules:
+- Include a responsive <style> block inside <article> (no external CSS, no JS).
+- If image_url is non-null, place <img src="IMAGE_URL" alt="ARTICLE_TITLE" loading="lazy" style="width:100%;max-height:420px;object-fit:cover;border-radius:8px;margin-bottom:1rem;"> as the first element inside <header>, before the <h1>.
+- Do NOT invent or hallucinate image URLs — only use the image_url value given in the JSON.
+- Structure: <article> → <header> (optional img, h1 = the title, one-paragraph summary) → 3-4 <section>s, each an h2 + 2+ paragraphs, covering in order:
+    what happened · why it matters / who it affects · background context · what to watch next
+  Write specific h2 headings for this story (not the generic labels above).
+  → <footer> with a link to the original source article.
+- Cover ONLY this one story. Do NOT mention, summarise or link any other news.
+- The source text is a short, truncated excerpt: use only the facts it contains. Do NOT invent specs, prices, dates, statistics or quotes. Background context must be general and clearly framed as context.
+- Active voice, SEO-friendly headings, 450-750 words. Do not pad to reach a length.\
+"""
+
+_SINGLE_USER_TEMPLATE = """\
+Write a blog post about this single {category} news story.
+
+News article (JSON):
+{article_json}
+
+Remember: output the compact JSON metadata on line 1, then the <article> HTML immediately after.\
+"""
+
+
 _GITHUB_SYSTEM_PROMPT = """\
 You are an expert technical writer and developer advocate. Write a detailed, engaging blog post about a single GitHub repository.
 
@@ -99,12 +136,23 @@ class LLMService:
           title, meta_description, keywords, og_title, og_description
         """
         payload = self._build_article_payload(articles)
-        user_message = _USER_TEMPLATE.format(
-            category=category,
-            articles_json=json.dumps(payload, ensure_ascii=False, indent=2),
-        )
+        single = len(articles) == 1
+
+        # One article → a focused post about that story; several → a roundup.
+        if single:
+            system_prompt = _SINGLE_SYSTEM_PROMPT
+            user_message = _SINGLE_USER_TEMPLATE.format(
+                category=category,
+                article_json=json.dumps(payload[0], ensure_ascii=False, indent=2),
+            )
+        else:
+            system_prompt = _SYSTEM_PROMPT
+            user_message = _USER_TEMPLATE.format(
+                category=category,
+                articles_json=json.dumps(payload, ensure_ascii=False, indent=2),
+            )
         messages = [
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},
         ]
 
@@ -117,6 +165,7 @@ class LLMService:
         logger.info(
             "Requesting blog generation",
             article_count=len(articles),
+            mode="single" if single else "roundup",
             category=category,
             model=active_model,
         )
@@ -135,7 +184,8 @@ class LLMService:
             logger.warning("HTML structure incomplete — proceeding anyway")
 
         if not meta.get("title"):
-            meta["title"] = _extract_h1(html) or f"Today's {category.capitalize()} News"
+            fallback = articles[0].title if single else f"Today's {category.capitalize()} News"
+            meta["title"] = _extract_h1(html) or fallback
 
         logger.info(
             "Blog generated",

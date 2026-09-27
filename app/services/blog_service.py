@@ -136,10 +136,12 @@ class BlogService:
 
         unique_articles = await self._dedup.filter_new(articles, category=category)
 
-        if len(unique_articles) < _MIN_ARTICLES:
+        # A single-story post (limit=1) only needs one fresh article.
+        min_required = min(limit, _MIN_ARTICLES)
+        if len(unique_articles) < min_required:
             raise InsufficientArticlesError(
                 f"Only {len(unique_articles)} unique article(s) found after deduplication "
-                f"(minimum {_MIN_ARTICLES} required). Try a different category or wait for new stories.",
+                f"(minimum {min_required} required). Try a different category or wait for new stories.",
                 detail={
                     "fetched": len(articles),
                     "unique": len(unique_articles),
